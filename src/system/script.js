@@ -1,3 +1,4 @@
+import ItemDialog from "../apps/item-dialog";
 import { log, systemConfig } from "../util/utility";
 const {mergeObject} = foundry.utils;
 
@@ -111,14 +112,26 @@ export default class WarhammerScript
         }
     }
 
+    //#region Helpers
+
     notification(content, type="info", permanent=false)
     {
         ui.notifications.notify(`<strong>${this.context.effect.name}</strong>: ${content}`, type, {permanent});
     }
 
+    error(content, permanent)
+    {
+        return this.notification(content, "error", permanent);
+    }
+
+    warn(content, permanent)
+    {
+        return this.notification(content, "warning", permanent);
+    }
+
     message(content, chatData={})
     {
-        return CONFIG.ChatMessage.documentClass.create(mergeObject({content}, this.getChatData(chatData)));
+        return CONFIG.ChatMessage.documentClass.create(foundry.utils.mergeObject({content}, this.getChatData(chatData)));
     }
     
     dialogConfig(content, config={})
@@ -141,6 +154,26 @@ export default class WarhammerScript
         return roll.total;
     }
 
+
+    async chooseEffect({filter, item=this.item, number=1, title, text}={})
+    {
+        if (item)
+        {
+            let effects = item.effects.contents.filter(i => i.id != this.effect.id);
+
+            if (filter)
+            {
+                effects = effects.filter(filter);
+            }
+
+            let choice = await ItemDialog.create(effects, number, {title : title ?? this.effect.name, text : text ?? this.label});
+            if (choice)
+            {
+                return choice[0];
+            }
+        }
+    }
+
     scriptNotification(...args)
     {
         return this.notification(...args);
@@ -158,8 +191,7 @@ export default class WarhammerScript
             flavor : this.context.effect.name || this.context.item.name || ""
         }, merge);
     }
-
-
+    //#endregion
 
     get actor() 
     {

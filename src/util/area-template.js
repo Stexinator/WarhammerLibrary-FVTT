@@ -84,12 +84,12 @@ export default class AreaTemplate extends foundry.canvas.placeables.Region
         }
 
         // Sometimes, the radius needs to reference the test (usually overcasting)
-        foundry.utils.setProperty(effectData, "system.sourceData.test",  test);
+        foundry.utils.setProperty(effectData, "system.sourceData.test",  {...test});
 
         foundry.utils.mergeObject(effectData, mergeData);
 
 
-        radius = radius || Number(effectData.system.transferData.area.radius) || new WarhammerActiveEffect(effectData).radius; 
+        radius = radius || Number(effectData.system.transferData.area.radius) || new ActiveEffect.implementation(effectData).radius; 
 
         if (!radius)
         {

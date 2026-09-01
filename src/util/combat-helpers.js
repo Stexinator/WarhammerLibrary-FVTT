@@ -29,9 +29,10 @@ export class CombatHelpers
 
         for(let combatant of combat.combatants)
         {
-            combatant.actor.runScripts("startCombat", {combat}, true);
+            // TODO scripts should probably run on owning clients, but combatStart hook isn't broadcast to other clientsn
+            combatant.actor.runScripts("startCombat", {combat});
             this.trackers[combat.id] = foundry.utils.deepClone(this._blankTracker);
-            combatant.actor.runScripts("startRound", {combat}, true);
+            combatant.actor.runScripts("startRound", {combat});
         }
         this.trackers[combat.id].startRound = 1;
         this.startCombat.forEach(fn => fn(combat,  data));

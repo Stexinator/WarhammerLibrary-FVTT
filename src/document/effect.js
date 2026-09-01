@@ -360,7 +360,7 @@ export default class WarhammerActiveEffect extends CONFIG.ActiveEffect.documentC
 
         if (transferData.avoidTest.value == "script")
         {
-            let script = new WarhammerScript({label : `${localize("WH.Resist")}: ${this.effect}`, script : transferData.avoidTest.script}, WarhammerScript.createContext(this));
+            let script = new WarhammerScript({label : `${localize("WH.Resist")}: ${this.effect}`, script : transferData.avoidTest.script, async: true}, WarhammerScript.createContext(this));
             return await script.execute();
         }
     }
@@ -603,6 +603,30 @@ export default class WarhammerActiveEffect extends CONFIG.ActiveEffect.documentC
         if (this.system.transferData.type == "zone")
         {
             return this.applyToZone();
+        }
+    }
+
+    /**
+     * Override to remove return when no statuses or changes
+     * @override
+     */
+    _displayScrollingStatus(enabled) 
+    {
+        const actor = this.target;
+        const tokens = actor.getActiveTokens(true);
+        const text = `${enabled ? "+" : "−"}(${this.name})`;
+        for ( const token of tokens ) 
+        {
+            if ( !token.visible || token.document.isSecret ) {continue;}
+            canvas.interface.createScrollingText(token.center, text, {
+                anchor: CONST.TEXT_ANCHOR_POINTS.CENTER,
+                direction: enabled ? CONST.TEXT_ANCHOR_POINTS.TOP : CONST.TEXT_ANCHOR_POINTS.BOTTOM,
+                distance: (2 * token.h),
+                fontSize: 28,
+                stroke: 0x000000,
+                strokeThickness: 4,
+                jitter: 0.25
+            });
         }
     }
 

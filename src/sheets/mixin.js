@@ -525,7 +525,7 @@ const WarhammerSheetMixinV2 = (cls) => class extends cls
         let doc = this.document;
         let path = this._getPath(ev);
         let property = foundry.utils.getProperty(doc, path);
-        doc.update(property.unset());
+        doc.update(property.unset?.() ?? {[path]: ""});
     }
 
     static async _onEditDiff(event)
