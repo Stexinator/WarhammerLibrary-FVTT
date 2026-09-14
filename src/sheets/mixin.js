@@ -22,6 +22,7 @@ const WarhammerSheetMixinV2 = (cls) => class extends cls
             toggleEffect : this._onEffectToggle,
             createEffect : this._onCreateEffect,
             toggleProperty : this._onToggleProperty,
+            setProperty : this._onSetProperty,
             listCreate : this._onListCreate,
             listDelete : this._onListDelete,
             listForm : this._onListForm,
@@ -402,6 +403,13 @@ const WarhammerSheetMixinV2 = (cls) => class extends cls
         let document = (await this._getDocumentAsync(ev, target)) || this.document;
         let path = target.dataset.path;
         document.update({[path] : !foundry.utils.getProperty(document, path)});
+    }
+
+    static async _onSetProperty(ev, target)
+    {
+        let document = (await this._getDocumentAsync(ev, target)) || this.document;
+        let path = target.dataset.path;
+        document.update({[path] : target.dataset.value});
     }
 
     static async _onStepProperty(ev, target)

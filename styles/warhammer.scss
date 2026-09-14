@@ -52,6 +52,14 @@
         text-align: center;
     }
 
+    .flexrow,
+    .flexcol
+    {
+        &.gap {
+            gap: 0.5rem;
+        }
+    }
+
     nav.sheet-tabs {
         
         border-top: 1px solid var(--tab-color);
@@ -133,9 +141,20 @@
       }
 
       label {
-          line-height: var(--form-field-height);
-      }
-
+        line-height: var(--form-field-height);
+        
+            &:has(input[type=checkbox]) {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+        
+            input[type=checkbox] {
+                padding-top: 0.4rem;
+                margin: 0px;
+            }
+        }
       .form-fields {
           display: flex;
           flex-direction: row;

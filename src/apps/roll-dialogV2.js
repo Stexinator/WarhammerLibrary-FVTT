@@ -8,6 +8,8 @@ export default class WarhammerRollDialogV2 extends HandlebarsApplicationMixin(Ap
 {
     selectedScripts = [];   // List of scripts that have been manually selected by the user
     unselectedScripts = []; // List of scripts that have been manually UNselected by the user
+    selectedModifiers = new Set(); // Same as above for non-script modifiers
+    unselectedModifiers = new Set();// Same as above for non-script modifiers
     #onKeyPress;            // Keep track of Enter key listener so it can be removed when submitted
     currentFocus;           // Keep track of current focused element to handle user submitting before the dialog has calculated the most recent input
     submitted = false;      // Flag that denotes the dialog has been submitted and should go through submission instead of rendering 
@@ -88,6 +90,7 @@ export default class WarhammerRollDialogV2 extends HandlebarsApplicationMixin(Ap
         Hooks.call(game.system.id + ":createRollDialog", this);
         data.scripts = data.scripts.concat(this._createScripts(this.context.scripts));
         this.data.scripts = this._consolidateScripts(data.scripts);
+        this.data.modifiers = {}; // Custom modifiers added by the dialog. Used if non-script modifier should be toggled instead of invisibly added.  
 
         if (resolve)
         {
@@ -380,6 +383,7 @@ export default class WarhammerRollDialogV2 extends HandlebarsApplicationMixin(Ap
         // Reset values so they don't accumulate 
         this.tooltips.clear();
         this.flags = {};
+        this.data.modifiers = {};
         // For some reason cloning the scripts doesn't prevent isActive and isHidden from persisisting
         // So for now, just reset them manually
         this.data.scripts.forEach(script => 
@@ -415,6 +419,7 @@ export default class WarhammerRollDialogV2 extends HandlebarsApplicationMixin(Ap
         await this.computeScripts();
         await this.computeFields();
 
+        this.modifierKeys = new Set(Object.keys(this.data.modifiers).filter(key => this.data.modifiers[key].isActive));
 
         return {
             data : this.data,
@@ -583,6 +588,38 @@ export default class WarhammerRollDialogV2 extends HandlebarsApplicationMixin(Ap
     {
     }
 
+    // Not called by this class, should be called by subclasses 
+    async computeModifiers()
+    {
+        for(let key of Object.keys(this.data.modifiers))
+        {
+            let modifier = this.data.modifiers[key];
+            this.tooltips.start(this);
+            // If active by default and not unselected, or inactive by default and manually selected, apply the modifier
+            if ((modifier.active && !this.unselectedModifiers.has(key)) || (!modifier.active && this.selectedModifiers.has(key)))
+            {
+                if (modifier.field)
+                {
+                    this.fields[modifier.field] += modifier.value;
+                    modifier.isActive = true;
+                }
+            }
+            this.tooltips.finish(this, modifier.label);
+        }
+    }
+
+    async addModifier({key, field, value=0, label, tooltip, active=true}={})
+    {
+        if (this.data.modifiers[key])
+        {
+            this.data.modifiers[key].value += value;
+        }
+        else 
+        {
+            this.data.modifiers[key] = {field, value, label, tooltip, active};
+        }
+    }
+
     /**
      * Whenever a "field" is changed (that being any element with a "name" property) record that field as user defined,
      * which overrides any automatic scripts or computations done to it
@@ -620,13 +657,34 @@ export default class WarhammerRollDialogV2 extends HandlebarsApplicationMixin(Ap
     }
 
     /**
-     * When a modifier (script) is selected, either activate or deactivate it by adding its index to 
+     * When a modifier is selected, either activate or deactivate it by adding its index to 
      * selected or unselected scripts respectively. 
+     * 
+     * If not from a script, handle similarly but instead use `un/selectedModiefrs` Sets
+     * 
      * @param {Event} ev Triggering event
      * @param target
      */
     static _onModifierClicked(ev, target)
     {
+
+        // If key provided, modifier is NOT from a script
+        if (target.dataset.key)
+        {
+            // if modifier is active by default, change the unselectedModifiers Set, if inactive by default, change selectedModifiers Set
+            let modifierStatus = this.data.modifiers[target.dataset.key].active ? this.unselectedModifiers : this.selectedModifiers;
+            if (modifierStatus.has(target.dataset.key))
+            {
+                modifierStatus.delete(target.dataset.key);
+            }
+            else 
+            {
+                modifierStatus.add(target.dataset.key);
+            }
+            this.render({force: true});
+        }
+
+        // If index is provided, it's from a script
         let index = Number(target.dataset.index);
         if (!target.classList.contains("active"))
         {
@@ -654,7 +712,7 @@ export default class WarhammerRollDialogV2 extends HandlebarsApplicationMixin(Ap
                 this.selectedScripts = this.selectedScripts.filter(i => i != index);
             }
         }
-        this.render(true);
+        this.render({force: true});
     }
 
 
