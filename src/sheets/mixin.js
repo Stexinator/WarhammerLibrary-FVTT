@@ -26,6 +26,8 @@ const WarhammerSheetMixinV2 = (cls) => class extends cls
             listCreate : this._onListCreate,
             listDelete : this._onListDelete,
             listForm : this._onListForm,
+            typedObjectCreate : this._onTypedObjectCreate,
+            typedObjectDelete : this._onTypedObjectDelete,
             unset : this._unsetReference,
             stepProperty : {buttons: [0, 2], handler : this._onStepProperty},
             togglePip : this._onTogglePip,
@@ -257,6 +259,11 @@ const WarhammerSheetMixinV2 = (cls) => class extends cls
             element.addEventListener("change", this.constructor._onListEdit.bind(this));
         });
 
+        this.element.querySelectorAll("[data-action='typedObjectEdit']").forEach(element => 
+        {
+            element.addEventListener("change", this.constructor._onTypedObjectEdit.bind(this));
+        });
+
         this.element.querySelectorAll(".name-list input").forEach(e => 
         {
             e.style.width = e.value.length + 2 + "ch";
@@ -476,6 +483,42 @@ const WarhammerSheetMixinV2 = (cls) => class extends cls
             doc.update(list.remove(index));
         }
     }
+
+    static async _onTypedObjectCreate(ev, target)
+    {
+        let path = this._getPath(ev);
+        let doc = await this._getDocumentAsync(ev, target) || this.document;
+        doc.update({[`${path}.${foundry.utils.randomID()}`] : {}});
+    }
+
+    static async _onTypedObjectDelete(ev, target)
+    {
+        let path = this._getPath(ev);
+        let doc = await this._getDocumentAsync(ev, target) || this.document;
+        let id = this._getId(ev, target);
+        doc.update({[`${path}.${id}`] : new foundry.data.operators.ForcedDeletion()});
+    }
+
+    static async _onTypedObjectEdit(ev, target=ev.target)
+    {
+        let path = this._getPath(ev);
+        let internalPath = this._getDataAttribute(ev, "ipath");
+        let value = ev.target.value;
+        let id = this._getId(ev, target);
+        let doc = await this._getDocumentAsync(ev, target) || this.document;
+
+        if (ev.target.type == "number" && value == "")
+        {
+            value = null;
+        }
+        if (ev.target.type == "checkbox")
+        {
+            value = ev.target.checked;
+        }
+
+        doc.update({[`${path}.${id}.${internalPath}`] : value});
+    }
+
 
     static async _onListEdit(ev, target)
     {
