@@ -5,7 +5,7 @@
     </div>
     <div class="module-list">
         {{#each modules}}
-            <div data-module="{{this.data.id}}" class="module {{#unless this.installed}}uninstalled{{/unless}} {{#unless this.active}}not-active{{/unless}} {{#if this.initialized}}initialized{{/if}}" style="background-image: url({{this.data.media.0.url}})" data-tooltip="{{this.tooltip}}">
+            <div data-module="{{this.key}}" class="module {{#unless this.installed}}uninstalled{{/unless}} {{#unless this.active}}not-active{{/unless}} {{#if this.initialized}}initialized{{/if}}" style="background-image: url({{this.data.media.0.url}})" data-tooltip="{{this.tooltip}}">
                 <h3>{{this.title}}</h3>
                 <div class="buttons">
                     {{#if this.active}}

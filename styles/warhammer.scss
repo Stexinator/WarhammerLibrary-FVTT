@@ -58,6 +58,10 @@
         &.gap {
             gap: 0.5rem;
         }
+
+        &.wrap {
+            flex-wrap: wrap;
+        }
     }
 
     nav.sheet-tabs {

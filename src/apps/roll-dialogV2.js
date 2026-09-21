@@ -10,6 +10,7 @@ export default class WarhammerRollDialogV2 extends HandlebarsApplicationMixin(Ap
     unselectedScripts = []; // List of scripts that have been manually UNselected by the user
     selectedModifiers = new Set(); // Same as above for non-script modifiers
     unselectedModifiers = new Set();// Same as above for non-script modifiers
+    ignoreModifiers = new Set(); // Scripts execute before modifiers, but need to have a way to prevent modifiers
     #onKeyPress;            // Keep track of Enter key listener so it can be removed when submitted
     currentFocus;           // Keep track of current focused element to handle user submitting before the dialog has calculated the most recent input
     submitted = false;      // Flag that denotes the dialog has been submitted and should go through submission instead of rendering 
@@ -419,7 +420,10 @@ export default class WarhammerRollDialogV2 extends HandlebarsApplicationMixin(Ap
         await this.computeScripts();
         await this.computeFields();
 
-        this.modifierKeys = new Set(Object.keys(this.data.modifiers).filter(key => this.data.modifiers[key].isActive));
+        Array.from(this.ignoreModifiers).forEach(key => 
+        {
+            delete this.data.modifiers[key];
+        });
 
         return {
             data : this.data,
@@ -598,7 +602,7 @@ export default class WarhammerRollDialogV2 extends HandlebarsApplicationMixin(Ap
             // If active by default and not unselected, or inactive by default and manually selected, apply the modifier
             if ((modifier.active && !this.unselectedModifiers.has(key)) || (!modifier.active && this.selectedModifiers.has(key)))
             {
-                if (modifier.field)
+                if (modifier.field && !this.ignoreModifiers.has(key))
                 {
                     this.fields[modifier.field] += modifier.value;
                     modifier.isActive = true;

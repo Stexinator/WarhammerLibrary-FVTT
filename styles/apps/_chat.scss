@@ -1,4 +1,17 @@
 .chat-message {
+
+    .flexrow,
+    .flexcol
+    {
+        &.gap {
+            gap: 0.5rem;
+        }
+
+        &.wrap {
+            flex-wrap: wrap;
+        }
+    }
+
     .test-buttons {
         button {
             &:first-child

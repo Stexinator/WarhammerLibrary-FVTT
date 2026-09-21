@@ -43,7 +43,8 @@ export class WarhammerModuleInitializationV2 extends HandlebarsApplicationMixin(
                 active : game.modules.get(m)?.active,
                 initialized : game.modules.get(m)?.active && game.settings.get(m, "initialized"),
                 data : module,
-                title : systemConfig().premiumModules[m]
+                title : systemConfig().premiumModules[m],
+                key: m
             };            
             if (!moduleData.installed)
             {
